@@ -47,8 +47,7 @@ public class Article {
         return new Article(hash, url, title, text, author, time);
     }
 
-    @Override
-    public String toString() {
+    public String toJsonString() {
         return "Article{" +
                 "hash='" + hash + '\'' +
                 ", url='" + url + '\'' +

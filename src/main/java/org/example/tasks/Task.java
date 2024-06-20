@@ -1,14 +1,15 @@
 package org.example.tasks;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonValue;
 
 public abstract class Task implements Runnable{
 
     public enum Type {
         UNKNOWN(-1),
         GET_LINKS(0),
-        PARSE_PAGE(1);
+        PARSE_PAGE(1),
+        ELASTIC_SEARCH_ADD(2),
+        ELASTIC_SEARCH_CHECK_LINK(3);
 
         Type(Integer code) { this.code = code; }
 

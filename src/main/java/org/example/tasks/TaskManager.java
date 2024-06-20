@@ -1,6 +1,7 @@
 package org.example.tasks;
 
 import com.rabbitmq.client.*;
+import org.example.Article;
 import org.example.Constants;
 import org.example.ElasticSearchManager;
 import org.example.Logger;
@@ -44,13 +45,6 @@ public class TaskManager {
             instance = new TaskManager();
         }
         return instance;
-    }
-
-    public ElasticSearchManager getESM() {
-        if (instance == null) {
-            instance = new TaskManager();
-        }
-        return esm;
     }
 
     private ConnectionFactory createConnection() {
@@ -114,6 +108,36 @@ public class TaskManager {
                 }
             };
 
+            DefaultConsumer consumerESM = new DefaultConsumer(channel) {
+                @Override
+                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                    String message = new String(body, "UTF-8");
+                    long deliveryTag = envelope.getDeliveryTag();
+                    String receivedRoutingKey = envelope.getRoutingKey();
+                    lastMessageTime = System.currentTimeMillis();
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    try {
+                        JsonNode node = objectMapper.readTree(message);
+
+                        if (receivedRoutingKey.equals(Task.Type.GET_LINKS.toString())) {
+                            es.submit(new GetLinksTask(node.get("url").toString()));
+                        } else if (receivedRoutingKey.equals(Task.Type.PARSE_PAGE.toString())) {
+                            es.submit(new ParseTask(node.get("link").toString(), node.get("hash").toString()));
+                        } else if (receivedRoutingKey.equals(Task.Type.ELASTIC_SEARCH_CHECK_LINK.toString())) {
+                            es.submit(new ElasticSearchCheckLinkTask(node.get("link").toString(), node.get("hash").toString()), esm);
+                        } else if (receivedRoutingKey.equals(Task.Type.ELASTIC_SEARCH_CHECK_LINK.toString())) {
+                            es.submit(new ElasticSearchAddTask(message, esm));
+                        }
+                        channel.basicAck(deliveryTag, false);
+                    } catch (Exception e) {
+                        Logger.logException(e);
+                        channel.basicReject(deliveryTag, true);
+                    }
+
+                }
+            };
+
             Thread timeoutChecker = new Thread(() -> {
                 lastMessageTime = System.currentTimeMillis();
                 while (true) {
@@ -135,7 +159,7 @@ public class TaskManager {
             });
 
             timeoutChecker.start();
-            channel.basicConsume(Constants.RABBITMQ_QUEUE_NAME, false, consumer);
+            new Thread(channel.basicConsume(Constants.RABBITMQ_QUEUE_NAME, false, consumer)).start();
         } catch (IOException | TimeoutException e) {
             Logger.err("Task execution exception: %s", e.toString());
         }
@@ -146,10 +170,14 @@ public class TaskManager {
         try {
             try (Connection connection = factory.newConnection();
                  Channel channel = connection.createChannel()) {
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                String data = objectMapper.valueToTree(task).toString();
-
+                String data;
+                if (task.getType() == Task.Type.ELASTIC_SEARCH_ADD) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    data = ((ElasticSearchAddTask) task).getArticleJsonStr();
+                } else {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    data = objectMapper.valueToTree(task).toString();
+                }
                 channel.basicPublish(Constants.RABBITMQ_EXCHANGE_NAME, task.type.getCode().toString(), null, data.getBytes());
                 Logger.info("Sending task typ: %s", task.getType().toString());
             }

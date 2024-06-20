@@ -66,7 +66,7 @@ public class GetLinksTask extends Task {
                 String hash = getHash(link);
 
                 Logger.info("Get link({}) with hash ({})", link, hash);
-                TaskManager.getInstance().addTask(new ParseTask(link, hash));
+                TaskManager.getInstance().addTask(new ElasticSearchCheckLinkTask(link, hash));
             }
         } catch (IOException | NoSuchAlgorithmException e) {
             Logger.err("Exception: ", e);

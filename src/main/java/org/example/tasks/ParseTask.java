@@ -65,17 +65,11 @@ public class ParseTask extends Task {
 
     @Override
     public void run() {
-        try {
-            if (!TaskManager.getInstance().getESM().checkLinkExist(hash)) {
-                Article article = ParseArticle();
-                if (article != null) {
-                    TaskManager.getInstance().getESM().addDocument(article);
-                } else {
-                    throw new RuntimeException("Can't parse document - " + url + " hash(" + hash + ")");
-                }
-            }
-        } catch (IOException e) {
-            Logger.err("ParseTask failed: ", e);
+        Article article = ParseArticle();
+        if (article != null) {
+            TaskManager.getInstance().addTask(new ElasticSearchAddTask(article.toJsonString()));
+        } else {
+            throw new RuntimeException("Can't parse document - " + url + " hash(" + hash + ")");
         }
     }
 }

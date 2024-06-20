@@ -15,7 +15,7 @@ import org.elasticsearch.client.RestClient;
 import java.io.IOException;
 
 
-public class ElasticSearchManager implements AutoCloseable {
+public class ElasticSearchManager implements AutoCloseable, Runnable {
     private static final Logger logger = LogManager.getLogger(ElasticSearchManager.class);
     private final ElasticsearchClient client;
     private static final String INDEX_NAME = Constants.ES_INDEX;
@@ -87,5 +87,9 @@ public class ElasticSearchManager implements AutoCloseable {
         } catch (IOException e) {
             logger.error("Error closing Elasticsearch client", e);
         }
+    }
+
+    public void run() {
+
     }
 }

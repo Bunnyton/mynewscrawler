@@ -1,6 +1,5 @@
-package main.java.org.example;
+package org.example;
 
-import org.example.Constants;
 import org.example.tasks.GetLinksTask;
 import org.example.tasks.TaskManager;
 

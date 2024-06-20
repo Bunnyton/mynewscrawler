@@ -17,6 +17,7 @@ public class ParseTask extends Task {
     public ParseTask(String url, String hash) {
         this.url = url;
         this.hash = hash;
+        this.type = Type.PARSE_PAGE;
     }
 
     private Article ParseArticle() {

@@ -21,6 +21,7 @@ public class GetLinksTask extends Task {
 
     public GetLinksTask(String url) {
         this.url = url;
+        this.type = Type.GET_LINKS;
     }
 
     private String getHash(String input) throws NoSuchAlgorithmException {

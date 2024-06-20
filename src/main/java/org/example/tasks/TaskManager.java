@@ -150,9 +150,6 @@ public class TaskManager {
                 ObjectMapper objectMapper = new ObjectMapper();
                 String data = objectMapper.valueToTree(task).toString();
 
-                channel.exchangeDeclare(Constants.RABBITMQ_EXCHANGE_NAME, "direct", true); // durable == True
-                channel.queueDeclare(Constants.RABBITMQ_QUEUE_NAME, true, false, false, null);
-                channel.queueBind(Constants.RABBITMQ_QUEUE_NAME, Constants.RABBITMQ_EXCHANGE_NAME, task.getType().toString());
                 channel.basicPublish(Constants.RABBITMQ_EXCHANGE_NAME, task.type.getCode().toString(), null, data.getBytes());
                 Logger.info("Sending task typ: %s", task.getType().toString());
             }

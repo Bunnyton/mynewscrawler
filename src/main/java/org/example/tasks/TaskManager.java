@@ -125,7 +125,7 @@ public class TaskManager {
                         } else if (receivedRoutingKey.equals(Task.Type.PARSE_PAGE.toString())) {
                             es.submit(new ParseTask(node.get("link").toString(), node.get("hash").toString()));
                         } else if (receivedRoutingKey.equals(Task.Type.ELASTIC_SEARCH_CHECK_LINK.toString())) {
-                            es.submit(new ElasticSearchCheckLinkTask(node.get("link").toString(), node.get("hash").toString()), esm);
+                            es.submit(new ElasticSearchCheckLinkTask(node.get("link").toString(), node.get("hash").toString(), esm));
                         } else if (receivedRoutingKey.equals(Task.Type.ELASTIC_SEARCH_CHECK_LINK.toString())) {
                             es.submit(new ElasticSearchAddTask(message, esm));
                         }
